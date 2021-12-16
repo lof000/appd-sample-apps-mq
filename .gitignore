@@ -1,0 +1,7 @@
+
+.DS_Store
+*.jar
+*.jar
+java/mqspringRecv/.mvn/wrapper/maven-wrapper.jar
+java/mqspringRecv/mqjms.log.0
+java/mqspringRecv/mqjms.log.0.lck

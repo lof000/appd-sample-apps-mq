@@ -1,0 +1,91 @@
+###################################
+##
+###################################
+
+### MQ
+version: "3.5"
+services:
+  mq:
+#    image: ibmcom/mq:latest
+    image: ibmcom/mq:9.2.4.0-r1    
+    container_name: mq
+    ports:
+      - "1414:1414"
+      - "9443:9443"
+    volumes:
+      - qm1data:/mnt/mqm
+    environment:
+      MQ_QMGR_NAME: "QM1"
+      MQ_APP_PASSWORD: "passw0rd"
+      LICENSE: "accept"
+      ibm.mq.connName: "localhost(1414)"
+      ibm.mq.user: "admin"
+      ibm.mq.password: "passw0rd"   
+
+  spring-mq-send:
+    image: leandrovo/spring-mq-send:1.0
+    container_name: spring-mq-send
+    ports:
+      - "9095:8080"
+    environment:
+      #server.port: 9095
+      ibm.mq.queueManager: "QM1"
+      ibm.mq.channel: "DEV.ADMIN.SVRCONN"
+      ibm.mq.connName: "mq(1414)"
+      ibm.mq.user: "admin"
+      ibm.mq.password: "passw0rd"   
+
+      #APPDYNAMICS AGENT CONFIGURATION
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/agent/javaagent.jar"
+      APPDYNAMICS_AGENT_ACCOUNT_NAME: "se-lab"
+      APPDYNAMICS_AGENT_ACCOUNT_ACCESS_KEY: "hj6a4d7h2cuq"
+      APPDYNAMICS_CONTROLLER_HOST_NAME: "se-lab.saas.appdynamics.com"
+      APPDYNAMICS_CONTROLLER_PORT: "443"
+      APPDYNAMICS_CONTROLLER_SSL_ENABLED: "true"
+
+      APPDYNAMICS_AGENT_APPLICATION_NAME: "MQTEST"
+      APPDYNAMICS_AGENT_TIER_NAME: "MQSOURCE"
+      APPDYNAMICS_AGENT_NODE_NAME=: "MQSOURCE"
+
+    volumes:
+      - agent-volume:/opt/agent
+
+  spring-mq-recv:
+    image: leandrovo/spring-mq-recv:1.0
+    container_name: spring-mq-recv
+    ports:
+      - "9096:8080"
+    environment:
+      #server.port: 9095
+      ibm.mq.queueManager: "QM1"
+      ibm.mq.channel: "DEV.ADMIN.SVRCONN"
+      ibm.mq.connName: "mq(1414)"
+      ibm.mq.user: "admin"
+      ibm.mq.password: "passw0rd"   
+
+      #APPDYNAMICS AGENT CONFIGURATION
+      JAVA_TOOL_OPTIONS: "-javaagent:/opt/agent/javaagent.jar"
+      APPDYNAMICS_AGENT_ACCOUNT_NAME: "se-lab"
+      APPDYNAMICS_AGENT_ACCOUNT_ACCESS_KEY: "hj6a4d7h2cuq"
+      APPDYNAMICS_CONTROLLER_HOST_NAME: "se-lab.saas.appdynamics.com"
+      APPDYNAMICS_CONTROLLER_PORT: "443"
+      APPDYNAMICS_CONTROLLER_SSL_ENABLED: "true"
+
+      APPDYNAMICS_AGENT_APPLICATION_NAME: "MQTEST"
+      APPDYNAMICS_AGENT_TIER_NAME: "MQTARGET"
+      APPDYNAMICS_AGENT_NODE_NAME=: "MQTARGET"
+
+    volumes:
+      - agent-volume:/opt/agent
+
+# APM - MONTAR O VOLUME DO AGENTE
+  apm-agent-saas:
+    image: agent-repo:21.11.2
+    container_name: appd-agent
+    volumes:
+      - agent-volume:/opt/agent     
+
+volumes:
+  qm1data: 
+  agent-volume:
+
